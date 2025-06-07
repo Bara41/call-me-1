@@ -16,7 +16,7 @@
 
 ## Посилання:
 
-- 🔗 **GitHub Pages (сайт): https://github.com/Bara41/call-me
+- 🔗 **GitHub Pages (сайт): [https://github.com/Bara41/call-me](https://github.com/Bara41/call-me-1)
 - 📄 **Звіт (Google Drive):[https://drive.google.com/your-report-link](https://docs.google.com/document/d/1LFcfD-0JR2B2uYRxS6UyXecXvdn_AKsBcgk_oL56ilY/edit?usp=drive_link)
 
 ---
