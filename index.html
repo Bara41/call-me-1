@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>Контакти – Call Me</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .logo-box {
+      background-color: #2c2c94; /* темніший прямокутник */
+      border-radius: 0.5rem;
+      padding: 0.5rem 2rem;       /* Збільшено відступи */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 180px;           /* Мінімальна ширина */
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg bg-primary py-2">
+    <div class="container-fluid">
+      <a href="home.html" class="navbar-brand d-flex align-items-center text-white logo-box m-0">
+        Call Me
+      </a>
+      <div class="ms-auto d-flex align-items-center me-3">
+        <a href="profile.html" class="btn btn-outline-light me-2">Профіль</a>
+        <button class="btn btn-outline-light" onclick="logout()">Вийти</button>
+      </div>
+    </div>
+  </nav>
+
+
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <input type="text" id="searchInput" class="form-control w-50" placeholder="Пошук контакту..." oninput="renderContacts()" />
+
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          Сортувати
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#" onclick="sortContacts('name')">За ім’ям</a></li>
+          <li><a class="dropdown-item" href="#" onclick="sortContacts('surname')">За прізвищем</a></li>
+        </ul>
+      </div>
+
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#contactModal" onclick="openAddModal()">Додати контакт</button>
+    </div>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Ім’я</th>
+          <th>Прізвище</th>
+          <th>Телефон</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody id="contactList"></tbody>
+    </table>
+  </div>
+
+  <!-- Модальне вікно -->
+  <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="contactForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="contactModalLabel">Контакт</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="contactName" class="form-label">Ім’я</label>
+              <input type="text" class="form-control" id="contactName" required />
+            </div>
+            <div class="mb-3">
+              <label for="contactSurname" class="form-label">Прізвище</label>
+              <input type="text" class="form-control" id="contactSurname" required />
+            </div>
+            <div class="mb-3">
+              <label for="contactPhone" class="form-label">Телефон</label>
+              <input type="tel" class="form-control" id="contactPhone" required />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Зберегти</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center text-muted mt-5 mb-3">© 2025 Call Me</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+    let editIndex = -1;
+
+    function saveContacts() {
+      localStorage.setItem('contacts', JSON.stringify(contacts));
+    }
+
+    function renderContacts() {
+      const list = document.getElementById('contactList');
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      list.innerHTML = '';
+
+      contacts
+        .filter(c =>
+          c.name.toLowerCase().includes(search) ||
+          c.surname.toLowerCase().includes(search) ||
+          c.phone.toLowerCase().includes(search)
+        )
+        .forEach((contact, index) => {
+          const row = `
+            <tr>
+              <td>${contact.name}</td>
+              <td>${contact.surname}</td>
+              <td>${contact.phone}</td>
+              <td>
+                <button class="btn btn-sm btn-warning me-1" onclick="editContact(${index})">Редагувати</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteContact(${index})">Видалити</button>
+              </td>
+            </tr>
+          `;
+          list.insertAdjacentHTML('beforeend', row);
+        });
+    }
+
+    function openAddModal() {
+      editIndex = -1;
+      document.getElementById('contactForm').reset();
+      document.getElementById('contactModalLabel').innerText = 'Додати контакт';
+    }
+
+    function editContact(index) {
+      const contact = contacts[index];
+      editIndex = index;
+      document.getElementById('contactName').value = contact.name;
+      document.getElementById('contactSurname').value = contact.surname;
+      document.getElementById('contactPhone').value = contact.phone;
+      document.getElementById('contactModalLabel').innerText = 'Редагувати контакт';
+      const modal = new bootstrap.Modal(document.getElementById('contactModal'));
+      modal.show();
+    }
+
+    function deleteContact(index) {
+      if (confirm('Ви впевнені, що хочете видалити цей контакт?')) {
+        contacts.splice(index, 1);
+        saveContacts();
+        renderContacts();
+      }
+    }
+
+    document.getElementById('contactForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = document.getElementById('contactName').value.trim();
+      const surname = document.getElementById('contactSurname').value.trim();
+      const phone = document.getElementById('contactPhone').value.trim();
+
+      const newContact = { name, surname, phone };
+
+      if (editIndex === -1) {
+        contacts.push(newContact);
+      } else {
+        contacts[editIndex] = newContact;
+      }
+
+      saveContacts();
+      renderContacts();
+      bootstrap.Modal.getInstance(document.getElementById('contactModal')).hide();
+    });
+
+    function sortContacts(field) {
+      contacts.sort((a, b) => a[field].localeCompare(b[field]));
+      saveContacts();
+      renderContacts();
+    }
+
+    function logout() {
+      localStorage.removeItem('loggedInUser');
+      window.location.href = 'login.html';
+    }
+
+    renderContacts();
+  </script>
+</body>
+</html>
