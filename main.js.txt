@@ -1,0 +1,93 @@
+document.addEventListener('DOMContentLoaded', () => {
+  if (!Model.getCurrentUser()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const contactList = document.getElementById('contactList');
+  const contactForm = document.getElementById('contactForm');
+  const searchInput = document.getElementById('searchInput');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const modal = new bootstrap.Modal(document.getElementById('contactModal'));
+  let contacts = Model.getContacts();
+
+  function renderContacts() {
+    const query = searchInput.value.toLowerCase();
+    contactList.innerHTML = '';
+
+    contacts
+      .filter(c =>
+        c.name.toLowerCase().includes(query) ||
+        c.surname.toLowerCase().includes(query) ||
+        c.phone.toLowerCase().includes(query)
+      )
+      .forEach(contact => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${contact.name}</td>
+          <td>${contact.surname}</td>
+          <td>${contact.phone}</td>
+          <td>
+            <button class="btn btn-sm btn-warning me-1" data-id="${contact.id}" data-action="edit">Редагувати</button>
+            <button class="btn btn-sm btn-danger" data-id="${contact.id}" data-action="delete">Видалити</button>
+          </td>
+        `;
+        contactList.appendChild(row);
+      });
+  }
+
+  contactForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const id = document.getElementById('contactId').value;
+    const name = document.getElementById('contactName').value.trim();
+    const surname = document.getElementById('contactSurname').value.trim();
+    const phone = document.getElementById('contactPhone').value.trim();
+
+    if (!name || !phone) return;
+
+    if (id) {
+      Model.updateContact({ id: Number(id), name, surname, phone });
+    } else {
+      Model.addContact({ name, surname, phone });
+    }
+
+    contacts = Model.getContacts();
+    renderContacts();
+    contactForm.reset();
+    modal.hide();
+  });
+
+  contactList.addEventListener('click', e => {
+    const btn = e.target;
+    const id = Number(btn.dataset.id);
+    const action = btn.dataset.action;
+
+    if (action === 'edit') {
+      const contact = contacts.find(c => c.id === id);
+      if (contact) {
+        document.getElementById('contactId').value = contact.id;
+        document.getElementById('contactName').value = contact.name;
+        document.getElementById('contactSurname').value = contact.surname;
+        document.getElementById('contactPhone').value = contact.phone;
+        modal.show();
+      }
+    }
+
+    if (action === 'delete') {
+      if (confirm('Видалити контакт?')) {
+        Model.deleteContact(id);
+        contacts = Model.getContacts();
+        renderContacts();
+      }
+    }
+  });
+
+  searchInput.addEventListener('input', renderContacts);
+
+  logoutBtn.addEventListener('click', () => {
+    Model.logoutUser();
+    window.location.href = 'login.html';
+  });
+
+  renderContacts();
+});
